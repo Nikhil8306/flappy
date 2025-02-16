@@ -1,4 +1,4 @@
-pub struct Viewport {
+pub struct Window {
     height: u32,
     width: u32,
     rightBorder:char,
@@ -9,7 +9,7 @@ pub struct Viewport {
 }
 
 
-impl Viewport {
+impl Window {
     pub fn new(height: u32, width: u32) -> Self{
         return Self{
             height,
@@ -35,7 +35,7 @@ impl Viewport {
     }
 }
 
-impl Viewport {
+impl Window {
     pub fn render(&self) {
         for i in 1..=self.height {
             print!("{}", self.rightBorder);
