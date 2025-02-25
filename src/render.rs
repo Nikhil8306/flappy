@@ -33,6 +33,11 @@ impl Window {
             fill
         }
     }
+
+    pub fn default() -> Self {
+        return Self::new(50, 50);
+    }
+    
 }
 
 impl Window {

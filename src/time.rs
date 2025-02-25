@@ -3,8 +3,12 @@ use std::time::{Instant, Duration};
 pub struct Time {
 
     pub startTime: Instant,
-    pub deltaTime: Duration,
+    deltaTime: Duration,
     pub prevTime: Duration,
+
+    pub fixedDeltaTime: Duration,
+    fixedAccumulator: Duration,
+    fixedUpdateCount: u32
 
 }
 
@@ -14,17 +18,46 @@ impl Time {
             startTime: Instant::now(),
             deltaTime: Duration::from_micros(0),
             prevTime: Duration::from_millis(0),
+            
+            fixedDeltaTime: Duration::from_micros(16670),
+            fixedAccumulator: Duration::from_micros(0),
+            fixedUpdateCount: 1,
+            
         }
     }
 }
 
 impl Time {
 
-    pub fn updateDeltaTime(&mut self) {
+    pub(super) fn updateDeltaTime(&mut self) {
         let elapsed = self.startTime.elapsed();
 
         self.deltaTime = elapsed - self.prevTime;
         self.prevTime = elapsed;
+
+
+        // Updating fixed accumulator to track fixed update
+        self.fixedAccumulator += self.deltaTime;    
+        
+        while self.fixedAccumulator >= self.fixedDeltaTime {
+            
+            self.fixedUpdateCount += 1;
+            self.fixedAccumulator -= self.fixedDeltaTime;
+
+        }
     }
+
+    pub(super) fn updateFixed(&mut self) -> bool {
+        let count = self.fixedUpdateCount;
+
+        if count == 0 {
+            return false;
+        }
+
+        self.fixedUpdateCount -= 1;
+
+        return count > 0;
+    } 
+
 
 }
