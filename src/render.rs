@@ -1,3 +1,12 @@
+use crate::sprite::Sprite;
+use crate::utils::Transform;
+
+pub trait Renderable {
+
+    fn sprite() -> Sprite;
+
+}
+
 pub struct Window {
     height: u32,
     width: u32,
@@ -41,6 +50,10 @@ impl Window {
 }
 
 impl Window {
+    pub fn init(&mut self) {
+        todo!("INit window");
+    }
+    
     pub fn render(&self) {
         for i in 1..=self.height {
             print!("{}", self.rightBorder);

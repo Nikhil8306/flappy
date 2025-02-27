@@ -22,14 +22,18 @@ impl Time {
             fixedDeltaTime: Duration::from_micros(16670),
             fixedAccumulator: Duration::from_micros(0),
             fixedUpdateCount: 1,
-            
         }
     }
 }
 
 impl Time {
+    pub(super) fn init(&mut self) {
+        self.startTime = Instant::now();
+        self.prevTime = Duration::from_millis(0);
+        self.fixedAccumulator = Duration::from_millis(0);
+    }
 
-    pub(super) fn updateDeltaTime(&mut self) {
+     pub(super) fn updateDeltaTime(&mut self) {
         let elapsed = self.startTime.elapsed();
 
         self.deltaTime = elapsed - self.prevTime;
