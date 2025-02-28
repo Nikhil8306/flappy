@@ -6,27 +6,24 @@ pub mod input;
 pub mod time;
 pub mod utils;
 pub mod sprite;
+pub mod scene;
 
 use input::Input;
 use time::Time;
 use render::{Window};
+use scene::{SceneManager, Scene};
 
 pub trait Runnable {
 
-    // Check if the script should run (default is true)
-    fn run(&self) -> bool {
-        return true;
-    }
-
-    fn start(&mut self, gameState: &mut GameState, window: &Window) {
+    fn start(&mut self, gameState: &mut GameState) {
 
     }   
 
-    fn update(&mut self, gameState: &mut GameState, window: &Window) {
+    fn update(&mut self, gameState: &mut GameState) {
 
     }
 
-    fn fixedUpdate(&mut self, gameState: &mut GameState, window: &Window) {
+    fn fixedUpdate(&mut self, gameState: &mut GameState) {
 
     }
 
@@ -35,7 +32,9 @@ pub trait Runnable {
 pub struct GameState {
     pub input: Input,
     pub time: Time,
+    pub sceneManager: SceneManager,
     onPlay: bool,
+    // currScene: u32, // Change it to scene manager which will manage the scenes, Make it in a way that it can communicate with the game loop
 }
 
 impl GameState {
@@ -44,6 +43,7 @@ impl GameState {
             input: Input::new(),
             time: Time::new(),
             onPlay: false,
+            sceneManager: SceneManager::new(),
         }
     }
 
@@ -60,7 +60,7 @@ impl GameState {
 
     }
 
-    pub fn stop(&mut self) {
+    pub fn quit(&mut self) {
         self.onPlay = false;
     }
 }
@@ -70,7 +70,8 @@ pub struct Game {
 
     gameState: GameState,
     window: Window,
-    scripts: Vec<Box<dyn Runnable>>
+    scenes: Vec<Scene>
+
 }
     
 impl Game {
@@ -80,15 +81,15 @@ impl Game {
             
             gameState: GameState::new(),
             window: Window::default(),
-            scripts: Vec::new(),
+            scenes: Vec::new(),
 
         };
     }
 
-    pub fn addScript(&mut self, script: Box<dyn Runnable>) {
-        self.scripts.push(script);
+    // Function to add scene
+    pub fn addScene(&mut self, scene: Scene) {
+        self.scenes.push(scene);
     }
-
 
     // Running the game
     pub fn run(&mut self) 
@@ -98,29 +99,48 @@ impl Game {
         // self.window.init();
         self.gameState.init();
 
-        // Loading the start function 
-        for script in self.scripts.iter_mut() {
-            script.start(&mut self.gameState, &self.window);
-        }
 
         self.gameState.onPlay = true;
         'update: while self.gameState.onPlay {
-            
-            // Updating the game state
+
+            // Updating game state
             self.gameState.update();
+            
+            // Valid scene Check
+            if self.gameState.sceneManager.currScene >= self.scenes.len() {
+                // Handle Error
+                println!("Invalid Scene !!!");
+                break 'update;
+            } 
 
+            let scene = &mut self.scenes[self.gameState.sceneManager.currScene];
+            let scripts = &mut scene.scripts;
 
-            // Running the action
-            for script in self.scripts.iter_mut() {
-                if !script.run() {
-                    continue;
+            // Check if new scene is loaded
+            if self.gameState.sceneManager.onSceneChange() {
+                for script in scripts.iter_mut() {
+                    script.start(&mut self.gameState);
+                    
+                    if !self.gameState.onPlay {
+                        break 'update;
+                    }
                 }
-                
-                script.update(&mut self.gameState, &self.window);
+            }   
+
+            // Action
+            for script in scripts.iter_mut() {
+                script.update(&mut self.gameState);
+                if !self.gameState.onPlay {
+                    break 'update;
+                }  
 
                 // Fixed Update
                 while self.gameState.time.updateFixed() {
-                    script.fixedUpdate(&mut self.gameState, &self.window);
+                    script.fixedUpdate(&mut self.gameState);
+                    
+                    if !self.gameState.onPlay {
+                        break 'update;
+                    }
                 }
             }
             
