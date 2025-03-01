@@ -1,9 +1,9 @@
 use crate::utils::Transform;
 
 pub struct Sprite {
-    sprite: Vec<char>,
-    height: u32,
-    width: u32,
-    render: bool,
-    transform: Transform,
+    pub sprite: Vec<char>,
+    pub height: u32,
+    pub width: u32,
+    pub render: bool,
+    pub transform: Transform,
 }

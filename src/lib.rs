@@ -12,6 +12,10 @@ use input::Input;
 use time::Time;
 use render::{Window};
 use scene::{SceneManager, Scene};
+use sprite::Sprite;
+
+use std::thread;
+use std::time::Duration;
 
 pub trait Runnable {
 
@@ -27,6 +31,12 @@ pub trait Runnable {
 
     }
 
+
+    // For Rendering
+    fn sprite(&self) -> Option<&Sprite> {
+        None
+    }
+
 }
 
 pub struct GameState {
@@ -34,7 +44,6 @@ pub struct GameState {
     pub time: Time,
     pub sceneManager: SceneManager,
     onPlay: bool,
-    // currScene: u32, // Change it to scene manager which will manage the scenes, Make it in a way that it can communicate with the game loop
 }
 
 impl GameState {
@@ -96,10 +105,10 @@ impl Game {
     {
         
         // Initalizing the game
-        // self.window.init();
+        self.window.init();
         self.gameState.init();
-
-
+        
+        
         self.gameState.onPlay = true;
         'update: while self.gameState.onPlay {
 
@@ -133,19 +142,29 @@ impl Game {
                 if !self.gameState.onPlay {
                     break 'update;
                 }  
-
-                // Fixed Update
+                
                 while self.gameState.time.updateFixed() {
+                    // cleaning the window
+                    self.window.clean();
+
                     script.fixedUpdate(&mut self.gameState);
                     
                     if !self.gameState.onPlay {
                         break 'update;
                     }
+
+                    // Rendering stuff
+                    self.window.render(script);
+
+
                 }
             }
             
         }
 
+
+        // Closing the window
+        self.window.close();
     }
 
 }
