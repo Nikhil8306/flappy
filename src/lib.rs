@@ -108,14 +108,17 @@ impl Game {
         self.gameState.init();
 
 
-        // Sorting scene gameObjects based on level for levelwise rendering
+        // Sorting scene gameObjects based on level for levelwise effective rendering (Decending Order)
         let scenes = &mut self.scenes;
         for scene in scenes.iter_mut() {
             scene.gameObjects.sort_by(|a, b| {
                 let spriteA = a.sprite();
                 let spriteB = b.sprite();
 
-                if spriteA.is_none() {
+                if spriteA.is_none() && spriteB.is_none() {
+                    return Ordering::Equal;
+                }
+                else if spriteA.is_none() {
                     return Ordering::Greater;
                 }
                 else if spriteB.is_none() {
@@ -125,7 +128,7 @@ impl Game {
                 let spriteA = spriteA.unwrap();
                 let spriteB = spriteB.unwrap();
 
-                return spriteA.transform.level.cmp(&spriteB.transform.level);
+                return spriteB.transform.level.cmp(&spriteA.transform.level);
             });
         }
 
@@ -174,6 +177,7 @@ impl Game {
                 if !self.gameState.onPlay {
                     break 'update;
                 }
+
                 for gameObject in gameObjects.iter_mut() {
                     gameObject.fixedUpdate(&mut self.gameState);
                     if !self.gameState.onPlay {

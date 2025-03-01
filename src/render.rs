@@ -18,6 +18,8 @@ pub struct Window {
 
     cursorX: u16,
     cursorY: u16,
+
+    isOpen: bool,
 }
 
 
@@ -26,19 +28,21 @@ impl Window {
         return Self{
             height,
             width,
-            rightBorder:'█',
-            leftBorder:'█',
-            topBorder:'▀',
-            bottomBorder:'▄',
-            // rightBorder:'|',
-            // leftBorder:'|',
-            // topBorder:'-',
-            // bottomBorder:'-',
+            // rightBorder:'█',
+            // leftBorder:'█',
+            // topBorder:'▀',
+            // bottomBorder:'▄',
+            rightBorder:'|',
+            leftBorder:'|',
+            topBorder:'-',
+            bottomBorder:'-',
 
             cursorX: 0,
             cursorY: 0,
 
-            buffer: vec![]
+            buffer: vec![],
+
+            isOpen: false,
         }
     }
 
@@ -54,13 +58,13 @@ impl Window {
             cursorX: 0,
             cursorY: 0,
 
-            buffer: vec![]
-
+            buffer: vec![],
+            isOpen: false,
         }
     }
 
     pub fn default() -> Self {
-        return Self::new(10, 50);
+        return Self::new(30, 80);
     }
     
 }
@@ -104,8 +108,14 @@ impl Window {
 
     }
     pub fn init(&mut self) {
+        if self.isOpen {
+            return;
+        }
+        // Drawing the Borders
         self.drawBorder();
         self.cursorMoveStart();
+
+        self.buffer = vec![' '; (self.height*self.width) as usize]; 
     }
 
     pub fn clean(&mut self) {
@@ -149,6 +159,35 @@ impl Window {
         self.cursorY = y+1;
     }
 
+    fn clearBuffer(&mut self) {
+        self.buffer = vec![' '; (self.height * self.width) as usize];
+    }
+
+    fn addSpriteToBuffer(&mut self, sprite: &Sprite) {
+
+        for i in 0..sprite.height {
+
+            let row = sprite.transform.y + i as i32;
+            if row < 0 || row >= self.height as i32{
+                continue;
+            }
+
+            for j in 0..sprite.width {
+
+                let col = sprite.transform.x + j as i32;
+
+                if col < 0 {
+                    continue;
+                } else if col >= self.width as i32 {
+                    break;
+                }
+
+                self.buffer[((row * self.width as i32) + col) as usize] = sprite.sprite[(i*sprite.width + j) as usize];
+            }
+
+        }
+
+    }
 
     // ToDo - save the rendering part in buffer first before flushing
     pub fn render(&mut self, script: &Box<dyn Runnable>) {
@@ -156,24 +195,21 @@ impl Window {
         if sprite.is_none() {
             return;
         }
-
+        
         let sprite = sprite.unwrap();
+        
+        self.clearBuffer();
+        self.addSpriteToBuffer(sprite);
 
-        for row in 0..sprite.height {
-            if (sprite.transform.y+row as i32) < 0 {
-                continue;
-            }
-            
-            let mut colStart = 0;
-            while colStart+sprite.transform.x < 0 && colStart < sprite.width as i32 {
-                colStart+=1;
-            } 
+        // Printing buffer on the window
+        self.cursorMoveOrigin();
+        for i in 0..self.height {
+            self.cursorMoveTo(0, i);
+            for j in 0..self.width {
 
-            self.cursorMoveTo((colStart  + sprite.transform.x)as u16, (row as i32 + sprite.transform.y) as u16);
-            
-            for col in colStart as u32..sprite.width {
-                print!("{}", sprite.sprite[(row*sprite.width+col) as usize]);
+                print!("{}", self.buffer[((i*self.width) + j) as usize]);
                 self.cursorX += 1;
+
             }
 
         }
