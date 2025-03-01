@@ -14,6 +14,8 @@ pub struct Window {
     topBorder:char,
     bottomBorder:char,
 
+    buffer: Vec<char>,
+
     cursorX: u16,
     cursorY: u16,
 }
@@ -35,6 +37,8 @@ impl Window {
 
             cursorX: 0,
             cursorY: 0,
+
+            buffer: vec![]
         }
     }
 
@@ -49,6 +53,8 @@ impl Window {
 
             cursorX: 0,
             cursorY: 0,
+
+            buffer: vec![]
 
         }
     }
@@ -143,6 +149,7 @@ impl Window {
         self.cursorY = y+1;
     }
 
+
     // ToDo - save the rendering part in buffer first before flushing
     pub fn render(&mut self, script: &Box<dyn Runnable>) {
         let sprite = script.sprite();
@@ -170,7 +177,6 @@ impl Window {
             }
 
         }
-
 
         stdout().flush().unwrap();
     }

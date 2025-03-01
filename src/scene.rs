@@ -38,19 +38,19 @@ impl SceneManager {
 }
 
 pub struct Scene {
-    pub(super) scripts: Vec<Box<dyn Runnable>>,
+    pub(super) gameObjects: Vec<Box<dyn Runnable>>,
 }
 
 impl Scene {
 
     pub fn new() -> Self {
         return Self {
-            scripts: Vec::new(),
+            gameObjects: Vec::new(),
         }
     }
 
-    pub fn addScript(&mut self, script: Box<dyn Runnable>) {
-        self.scripts.push(script);
+    pub fn addGameObject(&mut self, script: Box<dyn Runnable>) {
+        self.gameObjects.push(script);
     }
 
 }

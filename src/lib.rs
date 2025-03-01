@@ -14,8 +14,7 @@ use render::{Window};
 use scene::{SceneManager, Scene};
 use sprite::Sprite;
 
-use std::thread;
-use std::time::Duration;
+use std::cmp::Ordering;
 
 pub trait Runnable {
 
@@ -107,8 +106,31 @@ impl Game {
         // Initalizing the game
         self.window.init();
         self.gameState.init();
-        
-        
+
+
+        // Sorting scene gameObjects based on level for levelwise rendering
+        let scenes = &mut self.scenes;
+        for scene in scenes.iter_mut() {
+            scene.gameObjects.sort_by(|a, b| {
+                let spriteA = a.sprite();
+                let spriteB = b.sprite();
+
+                if spriteA.is_none() {
+                    return Ordering::Greater;
+                }
+                else if spriteB.is_none() {
+                    return Ordering::Less;
+                }
+                
+                let spriteA = spriteA.unwrap();
+                let spriteB = spriteB.unwrap();
+
+                return spriteA.transform.level.cmp(&spriteB.transform.level);
+            });
+        }
+
+
+        // Settings play to true
         self.gameState.onPlay = true;
         'update: while self.gameState.onPlay {
 
@@ -117,18 +139,18 @@ impl Game {
             
             // Valid scene Check
             if self.gameState.sceneManager.currScene >= self.scenes.len() {
-                // Handle Error
+                // ToDO  : Handle it beautifully 
                 println!("Invalid Scene !!!");
                 break 'update;
             } 
 
             let scene = &mut self.scenes[self.gameState.sceneManager.currScene];
-            let scripts = &mut scene.scripts;
+            let gameObjects = &mut scene.gameObjects;
 
             // Check if new scene is loaded
             if self.gameState.sceneManager.onSceneChange() {
-                for script in scripts.iter_mut() {
-                    script.start(&mut self.gameState);
+                for gameObject in gameObjects.iter_mut() {
+                    gameObject.start(&mut self.gameState);
                     
                     if !self.gameState.onPlay {
                         break 'update;
@@ -136,30 +158,32 @@ impl Game {
                 }
             }   
 
-            // Action
-            for script in scripts.iter_mut() {
-                script.update(&mut self.gameState);
+            // Update
+            for gameObject in gameObjects.iter_mut() {
+                gameObject.update(&mut self.gameState);
                 if !self.gameState.onPlay {
                     break 'update;
-                }  
-                
-                while self.gameState.time.updateFixed() {
-                    // cleaning the window
-                    self.window.clean();
+                }
+            }
 
-                    script.fixedUpdate(&mut self.gameState);
-                    
+            // Fixed Update
+            while self.gameState.time.updateFixed() {
+                // cleaning the window
+                self.window.clean();
+
+                if !self.gameState.onPlay {
+                    break 'update;
+                }
+                for gameObject in gameObjects.iter_mut() {
+                    gameObject.fixedUpdate(&mut self.gameState);
                     if !self.gameState.onPlay {
                         break 'update;
                     }
-
-                    // Rendering stuff
-                    self.window.render(script);
-
-
+                    // Rendering stuff (currently in fixedupdate :/)
+                    self.window.render(gameObject);
                 }
+
             }
-            
         }
 
 
