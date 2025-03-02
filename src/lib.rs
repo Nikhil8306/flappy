@@ -171,22 +171,26 @@ impl Game {
 
             // Fixed Update
             while self.gameState.time.updateFixed() {
-                // cleaning the window
-                self.window.clean();
 
                 if !self.gameState.onPlay {
                     break 'update;
                 }
+
+                // Clearing Window Buffer, Todo - Integrate it in window render
+                self.window.clearBuffer();
 
                 for gameObject in gameObjects.iter_mut() {
                     gameObject.fixedUpdate(&mut self.gameState);
                     if !self.gameState.onPlay {
                         break 'update;
                     }
-                    // Rendering stuff (currently in fixedupdate :/)
-                    self.window.render(gameObject);
-                }
 
+                    // Adding gameobject's sprite to buffer
+                    self.window.addSpriteToBufferFromGameObject(gameObject);
+                }
+                
+                // Rendering stuff (currently in fixedupdate :/)
+                self.window.render();
             }
         }
 

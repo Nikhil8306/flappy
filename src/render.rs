@@ -1,5 +1,5 @@
 use crate::sprite::Sprite;
-use crossterm::{cursor::{MoveDown, MoveLeft, MoveRight, MoveUp}, ExecutableCommand};
+use crossterm::{cursor::{MoveDown, MoveLeft, MoveRight, MoveUp}, execute, terminal, ExecutableCommand};
 use std::io::{stdout, Write};
 use crate::utils::Transform;
 use crate::Runnable;
@@ -100,7 +100,7 @@ impl Window {
 
             }
 
-            println!();
+            println!("\r");
         }
 
         self.cursorY = self.height+2;
@@ -111,11 +111,17 @@ impl Window {
         if self.isOpen {
             return;
         }
+
+
+        // Enabling raw mode
+        terminal::enable_raw_mode();        
+        
         // Drawing the Borders
         self.drawBorder();
         self.cursorMoveStart();
 
         self.buffer = vec![' '; (self.height*self.width) as usize]; 
+
     }
 
     pub fn clean(&mut self) {
@@ -159,11 +165,20 @@ impl Window {
         self.cursorY = y+1;
     }
 
-    fn clearBuffer(&mut self) {
+    pub(super) fn clearBuffer(&mut self) {
         self.buffer = vec![' '; (self.height * self.width) as usize];
     }
 
-    fn addSpriteToBuffer(&mut self, sprite: &Sprite) {
+
+    // Take whole vector of gameobjects as input and make adding sprite logic better by
+    // checking for every pixel(kinda) for the sprite value, will be efficient in case of too many sprites (I guess)
+    pub(super) fn addSpriteToBufferFromGameObject(&mut self, gameObject: &Box<dyn Runnable>) {
+        
+        let sprite = gameObject.sprite();
+        if sprite.is_none() {
+            return;
+        }
+        let sprite = sprite.unwrap();
 
         for i in 0..sprite.height {
 
@@ -189,20 +204,12 @@ impl Window {
 
     }
 
-    // ToDo - save the rendering part in buffer first before flushing
-    pub fn render(&mut self, script: &Box<dyn Runnable>) {
-        let sprite = script.sprite();
-        if sprite.is_none() {
-            return;
-        }
-        
-        let sprite = sprite.unwrap();
-        
-        self.clearBuffer();
-        self.addSpriteToBuffer(sprite);
+    // Todo : currently levels are reversed, make it render levelwise
+    pub fn render(&mut self) {
 
         // Printing buffer on the window
         self.cursorMoveOrigin();
+
         for i in 0..self.height {
             self.cursorMoveTo(0, i);
             for j in 0..self.width {
