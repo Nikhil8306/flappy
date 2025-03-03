@@ -57,14 +57,14 @@ impl GameState {
 
     fn init(&mut self) {
         self.time.init();
-        // self.input.init();
+        self.input.init();
     }
 
     fn update(&mut self) {
 
         // Updating the time and input
         self.time.updateDeltaTime();
-        // self.input.update();   
+        self.input.update();
 
     }
 
@@ -107,7 +107,6 @@ impl Game {
         self.window.init();
         self.gameState.init();
 
-
         // Sorting scene gameObjects based on level for levelwise effective rendering (Decending Order)
         let scenes = &mut self.scenes;
         for scene in scenes.iter_mut() {
@@ -128,7 +127,7 @@ impl Game {
                 let spriteA = spriteA.unwrap();
                 let spriteB = spriteB.unwrap();
 
-                return spriteB.transform.level.cmp(&spriteA.transform.level);
+                return spriteA.transform.level.cmp(&spriteB.transform.level);
             });
         }
 
@@ -136,6 +135,7 @@ impl Game {
         // Settings play to true
         self.gameState.onPlay = true;
         'update: while self.gameState.onPlay {
+            // continue;
 
             // Updating game state
             self.gameState.update();
@@ -176,8 +176,9 @@ impl Game {
                     break 'update;
                 }
 
-                // Clearing Window Buffer, Todo - Integrate it in window render
+                // Clearing Window Buffer
                 self.window.clearBuffer();
+                self.window.addSpriteToBufferFromGameObjects(gameObjects); // Adding sprites to the window buffer
 
                 for gameObject in gameObjects.iter_mut() {
                     gameObject.fixedUpdate(&mut self.gameState);
@@ -186,7 +187,6 @@ impl Game {
                     }
 
                     // Adding gameobject's sprite to buffer
-                    self.window.addSpriteToBufferFromGameObject(gameObject);
                 }
                 
                 // Rendering stuff (currently in fixedupdate :/)
@@ -201,3 +201,9 @@ impl Game {
 
 }
 
+
+
+impl Game {
+
+
+}

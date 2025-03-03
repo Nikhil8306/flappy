@@ -170,36 +170,35 @@ impl Window {
     }
 
 
-    // Take whole vector of gameobjects as input and make adding sprite logic better by
-    // checking for every pixel(kinda) for the sprite value, will be efficient in case of too many sprites (I guess)
-    pub(super) fn addSpriteToBufferFromGameObject(&mut self, gameObject: &Box<dyn Runnable>) {
-        
-        let sprite = gameObject.sprite();
-        if sprite.is_none() {
-            return;
-        }
-        let sprite = sprite.unwrap();
-
-        for i in 0..sprite.height {
-
-            let row = sprite.transform.y + i as i32;
-            if row < 0 || row >= self.height as i32{
-                continue;
+    pub(super) fn addSpriteToBufferFromGameObjects(&mut self, gameObjects: &Vec<Box<dyn Runnable>>) {
+        for gameObject in gameObjects {
+            let sprite = gameObject.sprite();
+            if sprite.is_none() {
+                return;
             }
+            let sprite = sprite.unwrap();
 
-            for j in 0..sprite.width {
+            for i in 0..sprite.height {
 
-                let col = sprite.transform.x + j as i32;
-
-                if col < 0 {
+                let row = sprite.transform.y + i as i32;
+                if row < 0 || row >= self.height as i32{
                     continue;
-                } else if col >= self.width as i32 {
-                    break;
                 }
 
-                self.buffer[((row * self.width as i32) + col) as usize] = sprite.sprite[(i*sprite.width + j) as usize];
-            }
+                for j in 0..sprite.width {
 
+                    let col = sprite.transform.x + j as i32;
+
+                    if col < 0 {
+                        continue;
+                    } else if col >= self.width as i32 {
+                        break;
+                    }
+
+                    self.buffer[((row * self.width as i32) + col) as usize] = sprite.sprite[(i*sprite.width + j) as usize];
+                }
+
+            }
         }
 
     }
@@ -224,8 +223,11 @@ impl Window {
         stdout().flush().unwrap();
     }
 
+    // Clear the window also
     pub fn close(&mut self) {
-        println!("Window Closed!!")
+        terminal::disable_raw_mode().unwrap();
+
+        println!("Window Closed!!");
     }
     
 }
