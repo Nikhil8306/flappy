@@ -1,14 +1,12 @@
-use crate::sprite::Sprite;
-use crossterm::{cursor::{MoveDown, MoveLeft, MoveRight, MoveUp}, execute, terminal, ExecutableCommand};
+use crossterm::{cursor::{self, MoveDown, MoveLeft, MoveRight, MoveUp}, execute, ExecutableCommand};
+use crossterm::terminal::{self, Clear, ClearType};
 use std::io::{stdout, Write};
-use crate::utils::Transform;
 use crate::Runnable;
 
 
-
-pub struct Window {
-    height: u16,
-    width: u16,
+pub(super) struct Window {
+    pub height: u16,
+    pub width: u16,
     rightBorder:char,
     leftBorder:char,
     topBorder:char,
@@ -125,7 +123,11 @@ impl Window {
     }
 
     pub fn clean(&mut self) {
-        self.drawBorder();
+        
+        self.cursorMoveStart();
+
+        execute!(stdout(), Clear(ClearType::FromCursorDown));
+
     }
 
 
@@ -150,7 +152,7 @@ impl Window {
         if self.cursorX > x+1 {
             stdout().execute(MoveLeft(self.cursorX-1 - x)).unwrap();
         }
-        else if self.cursorX < x+1 { // cannot use else because MoveRight(0) move cursor right 
+        else if self.cursorX < x+1 { // cannot use else because MoveRight(0) move cursor right by one place
             stdout().execute(MoveRight(x+1 - (self.cursorX))).unwrap();
         }
         
@@ -169,13 +171,13 @@ impl Window {
         self.buffer = vec![' '; (self.height * self.width) as usize];
     }
 
-
     pub(super) fn addSpriteToBufferFromGameObjects(&mut self, gameObjects: &Vec<Box<dyn Runnable>>) {
         for gameObject in gameObjects {
             let sprite = gameObject.sprite();
             if sprite.is_none() {
                 return;
             }
+
             let sprite = sprite.unwrap();
 
             for i in 0..sprite.height {
@@ -226,8 +228,6 @@ impl Window {
     // Clear the window also
     pub fn close(&mut self) {
         terminal::disable_raw_mode().unwrap();
-
-        println!("Window Closed!!");
     }
     
 }

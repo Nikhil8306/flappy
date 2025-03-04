@@ -14,6 +14,7 @@ impl SceneManager {
         };
     }
 }
+
 impl SceneManager {
 
     pub fn changeScene(&mut self, scene: usize) {

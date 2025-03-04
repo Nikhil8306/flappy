@@ -196,7 +196,17 @@ impl Game {
 
 
         // Closing the window
+        self.window.clean();
         self.window.close();
+    }
+
+    pub fn setWindow(&mut self, height: u16, width: u16) {
+        if self.gameState.onPlay {
+            return;
+        }
+
+        self.window.height = height;
+        self.window.width = width;
     }
 
 }
