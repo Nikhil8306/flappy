@@ -205,7 +205,6 @@ impl Window {
 
     }
 
-    // Todo : currently levels are reversed, make it render levelwise
     pub fn render(&mut self) {
 
         // Printing buffer on the window

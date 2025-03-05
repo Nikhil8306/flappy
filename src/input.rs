@@ -31,7 +31,7 @@ impl Input {
             keyPress: HashSet::new(), // Keys which are pressed
 
             keyDown: HashSet::new(), // Keys which got down
-            keyUp: HashSet::new(), // Keys which got up
+            keyUp: HashSet::new(), // Keys which got upzz
         };
     }
 

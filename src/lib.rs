@@ -186,7 +186,6 @@ impl Game {
                         break 'update;
                     }
 
-                    // Adding gameobject's sprite to buffer
                 }
                 
                 // Rendering stuff (currently in fixedupdate :/)
@@ -208,12 +207,5 @@ impl Game {
         self.window.height = height;
         self.window.width = width;
     }
-
-}
-
-
-
-impl Game {
-
 
 }
